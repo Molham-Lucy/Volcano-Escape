@@ -91,7 +91,8 @@ export class World {
         // Render Lava
         if (this.game.lavaY !== undefined) {
             const screenLavaY = this.game.lavaY - this.cameraY;
-            ctx.fillStyle = GameConfig.world.lavaColor;
+            const worldConfig = this.game.getCurrentWorldConfig();
+            ctx.fillStyle = worldConfig.lavaColor;
             ctx.fillRect(0, screenLavaY, this.game.width, this.game.height); // Fill down?
             // Actually Lava rises, so it covers everything BELOW lavaY.
 

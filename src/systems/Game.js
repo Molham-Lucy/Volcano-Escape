@@ -23,10 +23,15 @@ export class Game {
         this.coins = 0;
         this.lavaY = 0;
         this.state = 'MENU'; // MENU, PLAYING, GAMEOVER, WIN
+        this.currentWorldId = 'world_1';
 
         window.addEventListener('resize', () => {
             // Optional
         });
+    }
+
+    getCurrentWorldConfig() {
+        return GameConfig.worlds[this.currentWorldId];
     }
 
     async start() {
@@ -95,13 +100,14 @@ export class Game {
         } else if (this.state === 'PLAYING') {
 
             // Lava Rising
-            this.lavaY -= GameConfig.world.lavaSpeed; // Y decreases (goes up)
+            const worldConfig = this.getCurrentWorldConfig();
+            this.lavaY -= worldConfig.lavaSpeed; // Y decreases (goes up)
 
             if (this.player) {
                 this.player.update(deltaTime);
 
                 // Check Death (Lava)
-                if (this.player.y + this.player.radius > this.lavaY) {
+                if (this.player.y + this.player.height > this.lavaY) {
                     this.die();
                 }
 
