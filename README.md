@@ -24,6 +24,7 @@ The game uses CSV files (comma-separated values) to define levels. Each number c
 | **6** | Vanishing Platform | Disappears shortly after standing on it. | Light Grey |
 | **7** | Goal | Reaching this completes the level. | Gold |
 | **8** | Coin | Collect 10 to gain an extra life. | Yellow |
+| **9** | Wings | **Power-up**. Grants Double Jump for 5 seconds. | Cyan |
 
 ## Configuration
 Game settings can be adjusted in `src/config.js`.
@@ -36,6 +37,7 @@ Game settings can be adjusted in `src/config.js`.
 -   `springForce`: Upward force of springs (Negative value, e.g., -18)
 -   `jetpackForce`: Upward force of jetpack (Negative value, e.g., -0.95)
 -   `jetpackDuration`: Duration of jetpack in milliseconds (e.g., 3000)
+-   `wingsDuration`: Duration of wings power-up in milliseconds (e.g., 5000)
 
 ### World Settings
 Each world can have its own configuration:

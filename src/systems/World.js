@@ -124,6 +124,7 @@ export class World {
             case 6: ctx.fillStyle = '#aaa'; break; // Vanishing
             case 7: ctx.fillStyle = '#ffd700'; break; // Goal
             case 8: ctx.fillStyle = '#ff0'; break; // Coin
+            case 9: ctx.fillStyle = '#0ff'; break; // Wings
             default: ctx.fillStyle = '#f00'; break; // Unknown
         }
         ctx.fillRect(x, y, this.tileSize, this.tileSize);
