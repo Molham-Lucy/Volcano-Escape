@@ -10,6 +10,9 @@ export const GameConfig = {
     jumpForce: -12,
     maxFallSpeed: 6,
     gravity: 0.9,
+    springForce: -18, // Default -20
+    jetpackDuration: 3000, // 3 seconds
+    jetpackForce: -0.95, // Upward force for jetpack
   },
   worlds: {
     "world_1": {
@@ -18,6 +21,14 @@ export const GameConfig = {
       lavaSpeed: 0.1,
       gravityModifier: 1.0,
       backgroundImg: "1.png",
+    },
+    // World 2 shares config structure, example:
+    "world_2": {
+      name: "The Icy Depths",
+      lavaColor: "rgba(0, 191, 255, 0.8)", // Blue Lava
+      lavaSpeed: 0.15, // Fast!
+      gravityModifier: 1.0,
+      backgroundImg: "2.png", // Ensure this exists or fallback
     }
   },
   tiles: {

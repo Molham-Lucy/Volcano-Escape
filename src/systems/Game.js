@@ -24,7 +24,8 @@ export class Game {
         this.initialCoins = 0; // Coins at start of level
         this.lavaY = 0;
         this.state = 'MENU'; // MENU, PLAYING, GAMEOVER, WIN
-        this.currentWorldId = 'world_1';
+        this.currentWorld = 1;
+        this.currentLevel = 1;
 
         this.levelStartTime = 0;
         this.levelEndTime = 0;
@@ -37,21 +38,14 @@ export class Game {
     }
 
     getCurrentWorldConfig() {
-        return GameConfig.worlds[this.currentWorldId];
+        return GameConfig.worlds[`world_${this.currentWorld}`] || GameConfig.worlds['world_1'];
     }
 
     async start() {
         console.log("Loading Assets...");
         try {
             // Load CSV
-            try {
-                const csvText = await this.assets.loadText('level1', '/levels/world-1.csv');
-                this.initialLevelData = csvText;
-                this.world.loadFromCSV(csvText);
-            } catch (e) {
-                console.error("Failed to load level:", e);
-                // Fallback level?
-            }
+            await this.loadLevel(this.currentWorld, this.currentLevel);
 
             // Try load images
             try {
@@ -82,13 +76,6 @@ export class Game {
                 this.world.loadFromCSV(this.initialLevelData);
             }
             // Restore coins to what they were entering the level (or 0 if new game)
-            // But if we are dead-dead (GameOver), we reset everything in 'die' or 'start'.
-            // Here 'fullReset' implies "Retry Level" or "New Level".
-            // If it's a "Life Lost" reset, we don't restore map items (coins), 
-            // BUT user asked: "coins and powerups disappear. Please implement full reset... return coin count... back to before level started"
-
-            // So on ANY restart of the level (even death?), we strictly follow user request:
-            // "return coin count... back to what it was before the level was started"
             this.coins = this.initialCoins;
         }
 
@@ -115,6 +102,40 @@ export class Game {
         }
     }
 
+    async loadLevel(world, level) {
+        const levelPath = `/levels/world-${world}-${level}.csv`;
+        console.log(`Loading Level: ${levelPath}`);
+        try {
+            const csvText = await this.assets.loadText(`level_${world}_${level}`, levelPath);
+            this.initialLevelData = csvText;
+            this.world.loadFromCSV(csvText);
+            this.resetLevel(true);
+        } catch (e) {
+            console.error("Failed to load level:", levelPath, e);
+            // If level load fails (e.g. end of world), maybe go to next world?
+            // checking if it was world-X-Y failure.
+            // Simplified: If 1-2 fails, try 2-1.
+            if (level > 1) {
+                // Try next world
+                console.log("Level not found, trying next world...");
+                this.currentWorld++;
+                this.currentLevel = 1;
+                await this.loadLevel(this.currentWorld, this.currentLevel);
+            } else {
+                // Even world X-1 failed. End of game?
+                console.log("Game Complete or Error");
+                this.state = 'MENU'; // Back to title
+            }
+        }
+    }
+
+    async nextLevel() {
+        this.currentLevel++;
+        await this.loadLevel(this.currentWorld, this.currentLevel);
+        this.state = 'PLAYING';
+        this.initialCoins = this.coins; // Checkpoint coins
+    }
+
     gameLoop(timeStamp) {
         const deltaTime = timeStamp - this.lastTime;
         this.lastTime = timeStamp;
@@ -134,7 +155,9 @@ export class Game {
             if (this.input.isDown('Space') && this.inputCooldown <= 0) {
                 this.state = 'PLAYING';
                 this.initialCoins = 0; // New Game
-                this.resetLevel(true); // Ensure fresh start
+                this.currentWorld = 1;
+                this.currentLevel = 1;
+                this.loadLevel(1, 1);
             }
         } else if (this.state === 'PLAYING') {
 
@@ -234,9 +257,10 @@ export class Game {
             this.ctx.fillText(`Lives: ${this.lives}  Coins: ${this.coins}`, 20, 30);
 
             // Timer
+            // Timer & Level
             const time = Math.floor((performance.now() - this.levelStartTime) / 1000);
             this.ctx.textAlign = 'right';
-            this.ctx.fillText(`Time: ${time}`, this.width - 20, 30);
+            this.ctx.fillText(`Level: ${this.currentWorld}-${this.currentLevel}  Time: ${time}`, this.width - 20, 30);
 
         } else if (this.state === 'GAMEOVER') {
             this.ctx.fillStyle = '#f00';
@@ -258,8 +282,12 @@ export class Game {
             this.ctx.fillText(`Time: ${time}s`, this.width / 2, 350);
 
             this.ctx.font = '20px Courier New';
-            this.ctx.fillText("Press SPACE for Title", this.width / 2, 400);
+            this.ctx.fillText("Press SPACE for Next Level", this.width / 2, 400);
             this.ctx.textAlign = 'left';
+
+            if (this.input.isDown('Space') && this.inputCooldown <= 0) {
+                this.nextLevel();
+            }
         }
     }
 }

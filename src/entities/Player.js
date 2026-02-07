@@ -10,10 +10,16 @@ export class Player {
         this.vx = 0;
         this.vy = 0;
 
+        this.facingRight = true;
+
         this.grounded = false;
         this.coyoteTimer = 0;
         this.jumpTimer = 0;
+        this.jumpTimer = 0;
         this.isJumping = false;
+
+        this.hasJetpack = false;
+        this.jetpackTimer = 0;
     }
 
     get physicsConfig() {
@@ -38,6 +44,10 @@ export class Player {
             // Friction
             this.vx *= phys.friction;
         }
+
+        // Update facing
+        if (this.vx > 0.1) this.facingRight = true;
+        if (this.vx < -0.1) this.facingRight = false;
 
         // Clamp Speed
         if (this.vx > phys.moveSpeed) this.vx = phys.moveSpeed;
@@ -65,6 +75,22 @@ export class Player {
             }
         } else {
             this.isJumping = false;
+        }
+
+        // Jetpack Logic
+        if (this.hasJetpack) {
+            if (input.isDown('Space')) {
+                this.vy += phys.jetpackForce;
+                // Cap upward speed? 
+                if (this.vy < -phys.maxFallSpeed) this.vy = -phys.maxFallSpeed;
+            }
+
+            this.jetpackTimer -= deltaTime;
+            if (this.jetpackTimer <= 0) {
+                this.hasJetpack = false;
+                this.jetpackTimer = 0;
+                console.log("Jetpack expired");
+            }
         }
 
         // Gravity
@@ -163,7 +189,7 @@ export class Player {
             } else if (feetTile === 3) { // Mud
                 // Logic handled in movement
             } else if (feetTile === 4) { // Spring
-                this.vy = -20;
+                this.vy = this.physicsConfig.springForce;
                 this.grounded = false;
             }
         }
@@ -183,9 +209,10 @@ export class Player {
                 } else if (tileId === 7) { // Goal
                     this.game.win();
                 } else if (tileId === 5) { // Jetpack
-                    // this.game.activateJetpack();
+                    this.hasJetpack = true;
+                    this.jetpackTimer = this.physicsConfig.jetpackDuration;
                     world.setTile(x, y, 0);
-                    console.log("Jetpack!");
+                    console.log("Jetpack Acquired!");
                 }
             }
         }
@@ -195,8 +222,19 @@ export class Player {
         // Calculate Screen Position
         const screenY = this.game.world.worldToScreenY(this.y);
 
+        // Render Jetpack (Behind) - Draw BEFORE player sprite
+        if (this.hasJetpack) {
+            ctx.fillStyle = '#ff0';
+            // If facing right, jetpack is on the left (back).
+            // If facing left, jetpack is on the right (back).
+            const jetpackX = this.facingRight ? this.x - 5 : this.x + this.width;
+            ctx.fillRect(jetpackX, screenY + 10, 5, 10);
+        }
+
         const sprite = this.game.assets.getImage('player');
         if (sprite) {
+            // Check if we need to flip the sprite based on facingRight
+            // For now, drawing as is, but could add scale(-1, 1) logic here if sprite needs flipping
             ctx.drawImage(sprite, this.x, screenY, this.width, this.height);
         } else {
             ctx.fillStyle = GameConfig.colors.player || '#0f0';
@@ -204,16 +242,27 @@ export class Player {
 
             // Eyes
             ctx.fillStyle = '#fff';
-            const eyeOffset = this.width / 4;
             const eyeY = screenY + this.height / 3;
-            ctx.fillRect(this.x + eyeOffset, eyeY, 6, 6); // Left
-            ctx.fillRect(this.x + this.width - eyeOffset - 6, eyeY, 6, 6); // Right
+
+            // Adjust eyes based on facing
+            if (this.facingRight) {
+                ctx.fillRect(this.x + 18, eyeY, 6, 6); // Front Eye
+                ctx.fillRect(this.x + 6, eyeY, 6, 6); // Back Eye
+            } else {
+                ctx.fillRect(this.x + 6, eyeY, 6, 6); // Front Eye
+                ctx.fillRect(this.x + 18, eyeY, 6, 6); // Back Eye
+            }
 
             ctx.fillStyle = '#000';
-            // Direction based pupils?
+            // Pupils moved by vx logic
             const pupilOffset = this.vx > 0.1 ? 2 : (this.vx < -0.1 ? -2 : 0);
-            ctx.fillRect(this.x + eyeOffset + 2 + pupilOffset, eyeY + 2, 2, 2);
-            ctx.fillRect(this.x + this.width - eyeOffset - 4 + pupilOffset, eyeY + 2, 2, 2);
+            if (this.facingRight) {
+                ctx.fillRect(this.x + 18 + 2 + pupilOffset, eyeY + 2, 2, 2);
+                ctx.fillRect(this.x + 6 + 2 + pupilOffset, eyeY + 2, 2, 2);
+            } else {
+                ctx.fillRect(this.x + 6 + pupilOffset, eyeY + 2, 2, 2);
+                ctx.fillRect(this.x + 18 + pupilOffset, eyeY + 2, 2, 2);
+            }
         }
     }
 }
