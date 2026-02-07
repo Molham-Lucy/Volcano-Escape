@@ -21,6 +21,7 @@ export const GameConfig = {
       lavaSpeed: 0.1,
       gravityModifier: 1.0,
       backgroundImg: "1.png",
+      levelCount: 2,
     },
     // World 2 shares config structure, example:
     "world_2": {
@@ -29,6 +30,7 @@ export const GameConfig = {
       lavaSpeed: 0.15, // Fast!
       gravityModifier: 1.0,
       backgroundImg: "2.png", // Ensure this exists or fallback
+      levelCount: 1,
     }
   },
   tiles: {

@@ -44,20 +44,26 @@ export class Game {
     async start() {
         console.log("Loading Assets...");
         try {
-            // Load CSV
+            // Load CSV for Level 1-1 initially
             await this.loadLevel(this.currentWorld, this.currentLevel);
 
-            // Try load images
+            // Load Images
             try {
                 const tileset = await this.assets.loadImage('tileset', '/assets/tileset.png');
                 this.world.setTileset(tileset);
+            } catch (e) { console.error("Failed to load tileset", e); }
 
+            try {
                 await this.assets.loadImage('player', '/assets/player.png');
-                await this.assets.loadImage('background', '/assets/background.png');
-            } catch (e) { console.warn("Assets not found, using valid fallbacks."); }
+            } catch (e) { console.error("Failed to load player", e); }
+
+            // Load World Backgrounds
+            try {
+                await this.assets.loadImage('1.png', '/assets/1.png');
+                await this.assets.loadImage('2.png', '/assets/2.png');
+            } catch (e) { console.error("Failed to load backgrounds", e); }
 
             this.resetLevel(true); // True = Full Reset
-            // this.state = 'PLAYING'; // Wait for input
 
             console.log("Game Loop Started");
             this.gameLoop(0);
@@ -130,10 +136,30 @@ export class Game {
     }
 
     async nextLevel() {
-        this.currentLevel++;
+        console.log(`Starting Next Level Sequence. Current: ${this.currentWorld}-${this.currentLevel}`);
+
+        let targetWorld = this.currentWorld;
+        let targetLevel = this.currentLevel + 1;
+
+        const worldConfig = this.getCurrentWorldConfig();
+        // Check if we exceeded the levels in the current world
+        if (targetLevel > worldConfig.levelCount) {
+            targetWorld++;
+            targetLevel = 1;
+        }
+
+        console.log(`Advancing to: ${targetWorld}-${targetLevel}`);
+        this.currentWorld = targetWorld;
+        this.currentLevel = targetLevel;
+
         await this.loadLevel(this.currentWorld, this.currentLevel);
-        this.state = 'PLAYING';
-        this.initialCoins = this.coins; // Checkpoint coins
+
+        // check if we are actually playing now (load succeeded)
+        // If loadLevel failed, it might have changed world or set state to MENU.
+        if (this.world.height > 0) {
+            this.state = 'PLAYING';
+            this.initialCoins = this.coins; // Checkpoint value
+        }
     }
 
     gameLoop(timeStamp) {
@@ -221,11 +247,28 @@ export class Game {
         }
     }
 
-    win() {
-        this.state = 'WIN';
-        this.levelEndTime = performance.now();
-        this.inputCooldown = 1000;
-        console.log("You Win!");
+    handleGoal() {
+        // Check if there is a next level in this world
+        const worldConfig = this.getCurrentWorldConfig();
+        if (this.currentLevel < worldConfig.levelCount) {
+            this.state = 'LEVEL_COMPLETE';
+            this.levelEndTime = performance.now();
+            this.inputCooldown = 1000;
+        } else {
+            // Check if there is a next world
+            const nextWorldId = this.currentWorld + 1;
+            if (GameConfig.worlds[`world_${nextWorldId}`]) {
+                this.state = 'LEVEL_COMPLETE'; // End of world is also level complete unless we want a "World Clear" screen
+                this.levelEndTime = performance.now();
+                this.inputCooldown = 1000;
+            } else {
+                // No more worlds -> Game Win
+                this.state = 'WIN'; // True Game Over Win
+                this.levelEndTime = performance.now();
+                this.inputCooldown = 1000;
+                console.log("Game Completed!");
+            }
+        }
     }
 
     render() {
@@ -271,11 +314,11 @@ export class Game {
             this.ctx.fillText("Press SPACE for Title", this.width / 2, 350);
             this.ctx.textAlign = 'left';
 
-        } else if (this.state === 'WIN') {
+        } else if (this.state === 'LEVEL_COMPLETE') {
             this.ctx.fillStyle = '#0f0';
             this.ctx.font = '40px Courier New';
             this.ctx.textAlign = 'center';
-            this.ctx.fillText("LEVEL CLEAR!", this.width / 2, 300);
+            this.ctx.fillText("LEVEL COMPLETE!", this.width / 2, 300);
 
             const time = ((this.levelEndTime - this.levelStartTime) / 1000).toFixed(2);
             this.ctx.font = '30px Courier New';
@@ -287,6 +330,29 @@ export class Game {
 
             if (this.input.isDown('Space') && this.inputCooldown <= 0) {
                 this.nextLevel();
+            }
+
+        } else if (this.state === 'WIN') {
+            this.ctx.fillStyle = '#ffd700'; // Gold
+            this.ctx.font = '40px Courier New';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText("YOU HAVE ESCAPED!", this.width / 2, 300);
+
+            const time = ((this.levelEndTime - this.levelStartTime) / 1000).toFixed(2);
+            this.ctx.font = '30px Courier New';
+            this.ctx.fillText(`Total Time: ${time}s`, this.width / 2, 350);
+            this.ctx.fillText(`Lives: ${this.lives} Coins: ${this.coins}`, this.width / 2, 400);
+
+            this.ctx.font = '20px Courier New';
+            this.ctx.fillText("Press SPACE for Title", this.width / 2, 450);
+            this.ctx.textAlign = 'left';
+
+            if (this.input.isDown('Space') && this.inputCooldown <= 0) {
+                // Return to menu
+                this.lives = GameConfig.general.startingLives;
+                this.coins = 0;
+                this.state = 'MENU';
+                this.inputCooldown = 500;
             }
         }
     }

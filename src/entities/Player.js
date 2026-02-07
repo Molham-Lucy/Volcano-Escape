@@ -207,7 +207,7 @@ export class Player {
                     world.setTile(x, y, 0);
                     this.game.collectCoin();
                 } else if (tileId === 7) { // Goal
-                    this.game.win();
+                    this.game.handleGoal();
                 } else if (tileId === 5) { // Jetpack
                     this.hasJetpack = true;
                     this.jetpackTimer = this.physicsConfig.jetpackDuration;

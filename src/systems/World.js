@@ -66,7 +66,10 @@ export class World {
 
     render(ctx) {
         // Draw Background
-        const bg = this.game.assets.getImage('background');
+        const worldConfig = this.game.getCurrentWorldConfig();
+        const bgName = worldConfig.backgroundImg; // e.g. "1.png"
+        const bg = this.game.assets.getImage(bgName);
+
         if (bg) {
             ctx.drawImage(bg, 0, 0, this.game.width, this.game.height);
         } else {
