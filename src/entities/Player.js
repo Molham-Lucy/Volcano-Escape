@@ -195,20 +195,25 @@ export class Player {
         // Calculate Screen Position
         const screenY = this.game.world.worldToScreenY(this.y);
 
-        ctx.fillStyle = GameConfig.colors.player || '#0f0';
-        ctx.fillRect(this.x, screenY, this.width, this.height);
+        const sprite = this.game.assets.getImage('player');
+        if (sprite) {
+            ctx.drawImage(sprite, this.x, screenY, this.width, this.height);
+        } else {
+            ctx.fillStyle = GameConfig.colors.player || '#0f0';
+            ctx.fillRect(this.x, screenY, this.width, this.height);
 
-        // Eyes
-        ctx.fillStyle = '#fff';
-        const eyeOffset = this.width / 4;
-        const eyeY = screenY + this.height / 3;
-        ctx.fillRect(this.x + eyeOffset, eyeY, 6, 6); // Left
-        ctx.fillRect(this.x + this.width - eyeOffset - 6, eyeY, 6, 6); // Right
+            // Eyes
+            ctx.fillStyle = '#fff';
+            const eyeOffset = this.width / 4;
+            const eyeY = screenY + this.height / 3;
+            ctx.fillRect(this.x + eyeOffset, eyeY, 6, 6); // Left
+            ctx.fillRect(this.x + this.width - eyeOffset - 6, eyeY, 6, 6); // Right
 
-        ctx.fillStyle = '#000';
-        // Direction based pupils?
-        const pupilOffset = this.vx > 0.1 ? 2 : (this.vx < -0.1 ? -2 : 0);
-        ctx.fillRect(this.x + eyeOffset + 2 + pupilOffset, eyeY + 2, 2, 2);
-        ctx.fillRect(this.x + this.width - eyeOffset - 4 + pupilOffset, eyeY + 2, 2, 2);
+            ctx.fillStyle = '#000';
+            // Direction based pupils?
+            const pupilOffset = this.vx > 0.1 ? 2 : (this.vx < -0.1 ? -2 : 0);
+            ctx.fillRect(this.x + eyeOffset + 2 + pupilOffset, eyeY + 2, 2, 2);
+            ctx.fillRect(this.x + this.width - eyeOffset - 4 + pupilOffset, eyeY + 2, 2, 2);
+        }
     }
 }

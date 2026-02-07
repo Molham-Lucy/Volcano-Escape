@@ -65,6 +65,16 @@ export class World {
     }
 
     render(ctx) {
+        // Draw Background
+        const bg = this.game.assets.getImage('background');
+        if (bg) {
+            ctx.drawImage(bg, 0, 0, this.game.width, this.game.height);
+        } else {
+            // Fallback
+            ctx.fillStyle = "#222";
+            ctx.fillRect(0, 0, this.game.width, this.game.height);
+        }
+
         const startRow = Math.floor(this.cameraY / this.tileSize);
         const endRow = startRow + Math.ceil(this.game.height / this.tileSize) + 1;
 
