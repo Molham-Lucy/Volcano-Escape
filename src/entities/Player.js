@@ -35,6 +35,26 @@ export class Player {
         const input = this.game.input;
         const phys = this.physicsConfig;
 
+        // Check ground for special physics
+        let currentFriction = phys.friction;
+        let jumpForce = phys.jumpForce;
+
+        // Simple check for what is under feet
+        const cx = this.x + this.width / 2;
+        const feetY = this.y + this.height + 1;
+        const feetTx = Math.floor(cx / this.game.world.tileSize);
+        const feetTy = Math.floor(feetY / this.game.world.tileSize);
+        const tileUnderFeet = this.game.world.getTile(feetTx, feetTy);
+
+        if (this.grounded) {
+            if (tileUnderFeet === 2) { // Ice
+                currentFriction = phys.iceFriction;
+            } else if (tileUnderFeet === 3) { // Mud
+                currentFriction = phys.mudFriction;
+                jumpForce = phys.jumpForce * phys.mudJumpModifier;
+            }
+        }
+
         // Horizontal Movement
         if (input.isDown('ArrowLeft') || input.isDown('KeyA')) {
             this.vx -= phys.moveSpeed * 0.2; // Acceleration
@@ -42,7 +62,7 @@ export class Player {
             this.vx += phys.moveSpeed * 0.2;
         } else {
             // Friction
-            this.vx *= phys.friction;
+            this.vx *= currentFriction;
         }
 
         // Update facing
@@ -63,7 +83,7 @@ export class Player {
         // Jump Start
         if (input.isDown('Space')) {
             if (this.coyoteTimer > 0 && !this.isJumping) {
-                this.vy = phys.jumpForce;
+                this.vy = jumpForce;
                 this.isJumping = true;
                 this.grounded = false;
                 this.coyoteTimer = 0;

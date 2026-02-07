@@ -13,6 +13,9 @@ export const GameConfig = {
     springForce: -18, // Default -20
     jetpackDuration: 3000, // 3 seconds
     jetpackForce: -0.95, // Upward force for jetpack
+    iceFriction: 0.96, // Slippery (Current friction is 0.8)
+    mudFriction: 0.4, // Sticky
+    mudJumpModifier: 0.67, // 33% reduction
   },
   worlds: {
     "world_1": {
@@ -23,11 +26,10 @@ export const GameConfig = {
       backgroundImg: "1.png",
       levelCount: 2,
     },
-    // World 2 shares config structure, example:
     "world_2": {
       name: "The Icy Depths",
       lavaColor: "rgba(0, 191, 255, 0.8)", // Blue Lava
-      lavaSpeed: 0.15, // Fast!
+      lavaSpeed: 0.15, // Faster
       gravityModifier: 1.0,
       backgroundImg: "2.png", // Ensure this exists or fallback
       levelCount: 1,
