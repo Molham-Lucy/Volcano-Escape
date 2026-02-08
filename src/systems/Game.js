@@ -43,24 +43,26 @@ export class Game {
 
     async start() {
         console.log("Loading Assets...");
+        const baseUrl = import.meta.env.BASE_URL;
+
         try {
             // Load CSV for Level 1-1 initially
             await this.loadLevel(this.currentWorld, this.currentLevel);
 
             // Load Images
             try {
-                const tileset = await this.assets.loadImage('tileset', '/assets/tileset.png');
+                const tileset = await this.assets.loadImage('tileset', `${baseUrl}assets/tileset.png`);
                 this.world.setTileset(tileset);
             } catch (e) { console.error("Failed to load tileset", e); }
 
             try {
-                await this.assets.loadImage('player', '/assets/player.png');
+                await this.assets.loadImage('player', `${baseUrl}assets/player.png`);
             } catch (e) { console.error("Failed to load player", e); }
 
             // Load World Backgrounds
             try {
-                await this.assets.loadImage('1.png', '/assets/1.png');
-                await this.assets.loadImage('2.png', '/assets/2.png');
+                await this.assets.loadImage('1.png', `${baseUrl}assets/1.png`);
+                await this.assets.loadImage('2.png', `${baseUrl}assets/2.png`);
             } catch (e) { console.error("Failed to load backgrounds", e); }
 
             this.resetLevel(true); // True = Full Reset
@@ -161,7 +163,13 @@ export class Game {
     }
 
     async loadLevel(world, level) {
-        const levelPath = `/levels/world-${world}-${level}.csv`;
+        const baseUrl = import.meta.env.BASE_URL;
+        // Remove leading slash from path construction, use baseUrl
+        // baseUrl usually ends with / if set to ./ it might be empty or dot
+        // safely construct:
+        const cleanBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+        const levelPath = `${cleanBase}levels/world-${world}-${level}.csv`;
+
         console.log(`Loading Level: ${levelPath}`);
         try {
             const csvText = await this.assets.loadText(`level_${world}_${level}`, levelPath);
