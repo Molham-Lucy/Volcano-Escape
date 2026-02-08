@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-    base: './', // Use relative paths so it works on any repo name
+    base: '/Volcano-Escape/',
     build: {
         outDir: 'dist',
         assetsDir: 'assets',
