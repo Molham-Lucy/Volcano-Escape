@@ -87,11 +87,63 @@ export class Game {
 
         // Reset Player
         // Start at bottom of world (Rows are 0..Height-1)
-        // Row Height-1 is the bottom-most row.
-        // We want to spawn on top of the first solid ground.
-        // Hardcode for now: 
-        const spawnY = (this.world.height * 40) - 100;
-        this.player = new Player(this, 300, spawnY);
+        // Find safe spawn spot.
+        // We want to spawn on top of a solid block (1, 2, 3, 4).
+        // NOT: 0 (Air), 5 (Jetpack), 6 (Vanish), 7 (Goal), 8 (Coin), 9 (Wings)
+
+        let spawnX = 300;
+        let spawnY = (this.world.height * 40) - 100;
+
+        // Search for valid ground
+        // Start from bottom-most row, scan upwards
+        // Search x around center (approx tile 7) outwards
+        const centerTileX = Math.floor(300 / 40);
+        const searchOrder = [];
+
+        // Generate search order (center out)
+        for (let i = 0; i < this.world.width; i++) {
+            if (i === 0) searchOrder.push(centerTileX);
+            else {
+                if (centerTileX - i >= 0) searchOrder.push(centerTileX - i);
+                if (centerTileX + i < this.world.width) searchOrder.push(centerTileX + i);
+            }
+        }
+
+        let foundSafeSpot = false;
+
+        // We limit search to bottom 20 rows to avoid spawning at top
+        const startY = this.world.height - 1;
+        const endY = Math.max(0, this.world.height - 20);
+
+        for (let y = startY; y >= endY; y--) {
+            for (let x of searchOrder) {
+                const tile = this.world.getTile(x, y);
+                // Valid ground: 1, 2, 3, 4 (Solid)
+                // Invalid: 0, 5, 6, 7, 8, 9
+                const isSolid = [1, 2, 3, 4].includes(tile);
+
+                if (isSolid) {
+                    // Check if space ABOVE is emptyish (not solid)
+                    const tileAbove = this.world.getTile(x, y - 1);
+                    const isBlocked = [1, 2, 3, 4, 6].includes(tileAbove); // 6 is vanish, typically solid-ish
+
+                    if (!isBlocked) {
+                        spawnX = x * 40;
+                        spawnY = (y - 1) * 40; // Standing on top
+                        foundSafeSpot = true;
+                        break;
+                    }
+                }
+            }
+            if (foundSafeSpot) break;
+        }
+
+        if (!foundSafeSpot) {
+            console.warn("No safe spawn found! Using fallback.");
+            spawnY = (this.world.height * 40) - 100;
+        }
+
+        this.player = new Player(this, spawnX, spawnY);
 
         // Reset Camera
         this.world.cameraY = spawnY - 400; // Center ish

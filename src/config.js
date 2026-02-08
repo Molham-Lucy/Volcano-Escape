@@ -6,14 +6,14 @@ export const GameConfig = {
   },
   physics: {
     friction: 0.8,
-    moveSpeed: 4,
-    jumpForce: -12,
-    maxFallSpeed: 6,
-    gravity: 0.3,
-    springForce: -18, // Default -20
+    moveSpeed: 3,
+    jumpForce: -10.5,
+    maxFallSpeed: 3.6,
+    gravity: 0.9,
+    springForce: -20, // Default -20
     jetpackDuration: 3000, // 3 seconds
     jetpackForce: -0.95, // Upward force for jetpack
-    wingsDuration: 50000, // 5 seconds
+    wingsDuration: 5000, // 5 seconds
     iceFriction: 0.96, // Slippery (Current friction is 0.8)
     mudFriction: 0.4, // Sticky
     mudJumpModifier: 0.67, // 33% reduction
@@ -25,7 +25,7 @@ export const GameConfig = {
       lavaSpeed: 0.1,
       gravityModifier: 1.0,
       backgroundImg: "1.png",
-      levelCount: 2,
+      levelCount: 5,
     },
     "world_2": {
       name: "The Icy Depths",
