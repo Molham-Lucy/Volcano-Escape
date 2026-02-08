@@ -204,13 +204,15 @@ export class Game {
         this.currentWorld = targetWorld;
         this.currentLevel = targetLevel;
 
+        // Checkpoint coins BEFORE loading/resetting the level
+        this.initialCoins = this.coins;
+
         await this.loadLevel(this.currentWorld, this.currentLevel);
 
         // check if we are actually playing now (load succeeded)
         // If loadLevel failed, it might have changed world or set state to MENU.
         if (this.world.height > 0) {
             this.state = 'PLAYING';
-            this.initialCoins = this.coins; // Checkpoint value
         }
     }
 

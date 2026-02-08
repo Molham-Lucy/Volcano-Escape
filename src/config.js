@@ -22,18 +22,18 @@ export const GameConfig = {
     "world_1": {
       name: "The Volcanic Core",
       lavaColor: "rgba(255, 69, 0, 0.8)",
-      lavaSpeed: 0.1,
+      lavaSpeed: 0.3,
       gravityModifier: 1.0,
       backgroundImg: "1.png",
-      levelCount: 5,
+      levelCount: 6,
     },
     "world_2": {
       name: "The Icy Depths",
       lavaColor: "rgba(0, 191, 255, 0.8)", // Blue Lava
-      lavaSpeed: 0.15, // Faster
+      lavaSpeed: 0.4, // Faster
       gravityModifier: 1.0,
       backgroundImg: "2.png", // Ensure this exists or fallback
-      levelCount: 1,
+      levelCount: 2,
     }
   },
   tiles: {
