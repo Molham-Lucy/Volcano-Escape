@@ -11,6 +11,7 @@ export class Game {
         this.width = canvas.width = 800;
         this.height = canvas.height = 600;
         this.lastTime = 0;
+        this.accumulator = 0;
 
         this.ctx.imageSmoothingEnabled = false;
 
@@ -225,10 +226,28 @@ export class Game {
     }
 
     gameLoop(timeStamp) {
+        // First frame handling
+        if (!this.lastTime) this.lastTime = timeStamp;
+
         const deltaTime = timeStamp - this.lastTime;
         this.lastTime = timeStamp;
 
-        this.update(deltaTime);
+        // Cap deltaTime to prevent spiral of death if game lags significantly
+        // e.g. if tab is backgrounded or extensive lag
+        const maxDeltaTime = 100; // Max 100ms per frame to process
+        const dt = Math.min(deltaTime, maxDeltaTime);
+
+        this.accumulator += dt;
+
+        const fixedTimeStep = 1000 / 60; // 60 FPS (~16.67ms)
+
+        while (this.accumulator >= fixedTimeStep) {
+            this.update(fixedTimeStep);
+            this.accumulator -= fixedTimeStep;
+        }
+
+        // Optional: formatting for smooth rendering using alpha (accumulator / fixedTimeStep)
+        // ensure render uses interpolation if supported in future
         this.render();
 
         requestAnimationFrame((t) => this.gameLoop(t));
